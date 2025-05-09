@@ -1,0 +1,2650 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cuéntame tu historia</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- Biblioteca para exportar a PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style>
+        :root {
+            --primary-color: #6a5acd;
+            --secondary-color: #9370db;
+            --accent-color: #ffa07a;
+            --light-color: #f8f9fa;
+            --dark-color: #343a40;
+            --success-color: #28a745;
+            --warning-color: #ffc107;
+            --danger-color: #dc3545;
+            --neutral-light: #e9ecef;
+            --neutral-medium: #ced4da;
+            --neutral-dark: #adb5bd;
+            --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            --border-radius: 12px;
+            --transition: all 0.3s ease;
+        }
+
+        /* Tema para Mamá */
+        .theme-mama {
+            --primary-color: #9c27b0;
+            --secondary-color: #ba68c8;
+            --accent-color: #ff80ab;
+        }
+
+        /* Tema para Papá */
+        .theme-papa {
+            --primary-color: #2196f3;
+            --secondary-color: #64b5f6;
+            --accent-color: #4dd0e1;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--light-color);
+            color: var(--dark-color);
+            line-height: 1.6;
+        }
+
+        .app-container {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: white;
+            box-shadow: var(--shadow);
+        }
+
+        /* Estilos para el sistema de autenticación */
+        .auth-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+        }
+
+        .auth-box {
+            background-color: white;
+            padding: 2rem;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            width: 90%;
+            max-width: 400px;
+            text-align: center;
+        }
+
+        .auth-box h2 {
+            color: var(--primary-color);
+            margin-bottom: 1.5rem;
+        }
+
+        .auth-form .form-group {
+            margin-bottom: 1.5rem;
+            text-align: left;
+        }
+
+        .auth-form label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--dark-color);
+            font-weight: 600;
+        }
+
+        .auth-form input {
+            width: 100%;
+            padding: 0.8rem;
+            border: 1px solid var(--neutral-medium);
+            border-radius: var(--border-radius);
+            font-size: 1rem;
+        }
+
+        .auth-form button {
+            width: 100%;
+            padding: 0.8rem;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: var(--border-radius);
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .auth-form button:hover {
+            background-color: var(--secondary-color);
+        }
+
+        .auth-toggle {
+            margin-top: 1.5rem;
+            color: var(--dark-color);
+        }
+
+        .auth-toggle a {
+            color: var(--primary-color);
+            text-decoration: none;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .auth-toggle a:hover {
+            text-decoration: underline;
+        }
+
+        .app-header {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 1rem 2rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            border-bottom: 4px solid var(--accent-color);
+            position: relative;
+            display: none; /* Oculto inicialmente hasta el login */
+        }
+
+        .parent-selector {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .parent-btn {
+            background-color: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: var(--transition);
+        }
+
+        .parent-btn:hover {
+            background-color: rgba(255, 255, 255, 0.3);
+        }
+
+        .parent-btn.active {
+            background-color: white;
+            color: var(--primary-color);
+            font-weight: 600;
+        }
+
+        .logo-container {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .logo {
+            width: 50px;
+            height: 50px;
+            margin-right: 1rem;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        .app-header h1 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .nav-menu {
+            display: flex;
+            justify-content: center;
+            width: 100%;
+            gap: 0.5rem;
+        }
+
+        .nav-btn {
+            background-color: transparent;
+            border: none;
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: var(--transition);
+        }
+
+        .nav-btn:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .nav-btn.active {
+            background-color: white;
+            color: var(--primary-color);
+            font-weight: 600;
+        }
+
+        .main-content {
+            flex: 1;
+            padding: 2rem;
+            position: relative;
+            display: none; /* Oculto inicialmente hasta el login */
+        }
+
+        .content-section {
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .content-section.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .welcome-container {
+            text-align: center;
+            margin-bottom: 2rem;
+            padding: 2rem;
+            background: linear-gradient(rgba(106, 90, 205, 0.9), rgba(147, 112, 219, 0.9)), url('https://images.unsplash.com/photo-1529333166437-7750a6dd5a70?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80');
+            background-size: cover;
+            background-position: center;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            color: white;
+        }
+
+        .welcome-container h2 {
+            color: white;
+            margin-bottom: 1rem;
+            font-size: 2rem;
+            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.5);
+        }
+
+        .welcome-container p {
+            color: white;
+            font-size: 1.1rem;
+            margin-bottom: 1.5rem;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+        }
+
+        .progress-container {
+            width: 100%;
+            background-color: rgba(255, 255, 255, 0.3);
+            border-radius: 20px;
+            margin: 1.5rem 0;
+            box-shadow: var(--shadow);
+            position: relative;
+            height: 40px;
+        }
+
+        .progress-bar {
+            height: 100%;
+            border-radius: 20px;
+            background: linear-gradient(to right, var(--accent-color), var(--primary-color));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            transition: width 0.5s ease;
+            position: relative;
+            min-width: 60px;
+        }
+
+        .progress-text {
+            position: absolute;
+            width: 100%;
+            text-align: center;
+            z-index: 2;
+            font-weight: bold;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+        }
+
+        .welcome-animation {
+            display: flex;
+            justify-content: center;
+            margin: 2rem 0;
+            gap: 1rem;
+        }
+
+        .animation-circle {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background-color: var(--accent-color);
+            animation: bounce 1.5s infinite ease-in-out;
+        }
+
+        .animation-circle:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .animation-circle:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-15px); }
+        }
+
+        .cta-button {
+            background-color: var(--accent-color);
+            color: white;
+            border: none;
+            padding: 0.8rem 1.5rem;
+            border-radius: var(--border-radius);
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            box-shadow: var(--shadow);
+        }
+
+        .cta-button:hover {
+            background-color: #ff8c61;
+            transform: translateY(-2px);
+        }
+
+        .recent-entries {
+            margin-top: 2rem;
+        }
+
+        .section-header {
+            text-align: center;
+            margin-bottom: 2rem;
+            position: relative;
+        }
+
+        .section-header h2 {
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+        }
+
+        .export-buttons {
+            position: absolute;
+            top: 0;
+            right: 0;
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .export-btn {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: var(--transition);
+            font-size: 0.8rem;
+        }
+
+        .export-btn:hover {
+            background-color: var(--secondary-color);
+        }
+
+        .entries-grid, .questions-grid, .memories-grid, .favorites-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin-top: 1rem;
+        }
+
+        .entry-card, .question-card, .memory-card {
+            background-color: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            overflow: hidden;
+            transition: var(--transition);
+            border: 1px solid var(--neutral-medium);
+            cursor: pointer;
+        }
+
+        .entry-card:hover, .question-card:hover, .memory-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .entry-header, .memory-header {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 1rem;
+            position: relative;
+        }
+
+        .entry-header h3, .memory-header h3 {
+            font-size: 1.1rem;
+            margin-bottom: 0.3rem;
+        }
+
+        .entry-date, .memory-date {
+            font-size: 0.8rem;
+            opacity: 0.8;
+        }
+
+        .entry-content, .memory-content {
+            padding: 1rem;
+            font-size: 0.9rem;
+            color: var(--dark-color);
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .entry-actions, .memory-actions {
+            padding: 0.5rem 1rem;
+            display: flex;
+            justify-content: space-between;
+            border-top: 1px solid var(--neutral-medium);
+        }
+
+        .action-button {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: var(--transition);
+        }
+
+        .action-button:hover {
+            background-color: var(--secondary-color);
+        }
+
+        .question-categories {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .category-btn {
+            background-color: var(--neutral-light);
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .category-btn:hover {
+            background-color: var(--neutral-medium);
+        }
+
+        .category-btn.active {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .question-card {
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .question-card h3 {
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .question-card p {
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+            color: var(--dark-color);
+        }
+
+        .answer-btn {
+            background-color: var(--accent-color);
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            transition: var(--transition);
+            width: 100%;
+            margin-top: auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .answer-btn:hover {
+            background-color: #ff8c61;
+        }
+
+        .answer-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            background-color: var(--neutral-medium);
+        }
+
+        .memory-media {
+            width: 100%;
+            height: 180px;
+            object-fit: cover;
+            border-bottom: 1px solid var(--neutral-medium);
+        }
+
+        .memories-actions {
+            margin-bottom: 1.5rem;
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .modal-content {
+            background-color: white;
+            border-radius: var(--border-radius);
+            width: 90%;
+            max-width: 600px;
+            max-height: 90vh;
+            overflow-y: auto;
+            padding: 2rem;
+            position: relative;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .close-modal {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--neutral-dark);
+            transition: var(--transition);
+        }
+
+        .close-modal:hover {
+            color: var(--danger-color);
+        }
+
+        .modal h3 {
+            color: var(--primary-color);
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+
+        .modal textarea {
+            width: 100%;
+            min-height: 200px;
+            padding: 1rem;
+            border-radius: var(--border-radius);
+            border: 1px solid var(--neutral-medium);
+            resize: vertical;
+            margin-bottom: 1.5rem;
+            font-size: 1rem;
+        }
+
+        .modal-actions, .form-actions {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+        }
+
+        .modal-btn {
+            padding: 0.7rem 1.5rem;
+            border-radius: var(--border-radius);
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .save-btn {
+            background-color: var(--success-color);
+            color: white;
+        }
+
+        .save-btn:hover {
+            background-color: #218838;
+        }
+
+        .cancel-btn {
+            background-color: var(--neutral-light);
+            color: var(--dark-color);
+        }
+
+        .cancel-btn:hover {
+            background-color: var(--neutral-medium);
+        }
+
+        .edit-btn {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .edit-btn:hover {
+            background-color: var(--secondary-color);
+        }
+
+        .favorite-btn {
+            background-color: var(--warning-color);
+            color: var(--dark-color);
+        }
+
+        .favorite-btn:hover {
+            background-color: #e0a800;
+        }
+
+        .close-btn {
+            background-color: var(--danger-color);
+            color: white;
+        }
+
+        .close-btn:hover {
+            background-color: #c82333;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+
+        .form-group input[type="text"],
+        .form-group input[type="date"],
+        .form-group input[type="file"] {
+            width: 100%;
+            padding: 0.7rem;
+            border-radius: var(--border-radius);
+            border: 1px solid var(--neutral-medium);
+        }
+
+        .entry-modal-content .entry-content {
+            -webkit-line-clamp: unset;
+            overflow: visible;
+            padding: 1rem 0;
+            line-height: 1.8;
+        }
+
+        .entry-modal-content .entry-date {
+            text-align: center;
+            margin-bottom: 1rem;
+            color: var(--neutral-dark);
+        }
+
+        .entry-modal-content .entry-actions {
+            justify-content: center;
+            gap: 1rem;
+            border-top: none;
+            padding: 1rem 0 0;
+        }
+
+        .favorite-btn.active i {
+            color: gold;
+        }
+
+        /* Estilos para la vista de impresión */
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+            .print-section, .print-section * {
+                visibility: visible;
+            }
+            .print-section {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+                padding: 20px;
+                background-color: white;
+                color: black;
+            }
+            .no-print {
+                display: none !important;
+            }
+            .print-title {
+                text-align: center;
+                margin-bottom: 2rem;
+                font-size: 2rem;
+                color: black;
+            }
+            .print-entry {
+                margin-bottom: 2rem;
+                page-break-inside: avoid;
+            }
+            .print-entry h3 {
+                color: var(--primary-color);
+                margin-bottom: 0.5rem;
+            }
+            .print-entry .date {
+                color: #666;
+                margin-bottom: 1rem;
+            }
+            .print-entry .content {
+                line-height: 1.6;
+            }
+            .print-memory img {
+                max-width: 100%;
+                height: auto;
+                margin-top: 1rem;
+            }
+        }
+
+        /* Estilos para el popup de felicitaciones */
+        .congrats-popup {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+            animation: fadeIn 0.5s ease;
+        }
+        
+        .congrats-content {
+            background: linear-gradient(135deg, #ff9a9e 0%, #fad0c4 100%);
+            padding: 2rem;
+            border-radius: 20px;
+            text-align: center;
+            max-width: 500px;
+            width: 90%;
+            position: relative;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+        
+        .congrats-content h2 {
+            color: #fff;
+            font-size: 2rem;
+            margin-bottom: 1rem;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        
+        .congrats-content p {
+            color: #fff;
+            font-size: 1.2rem;
+            margin-bottom: 2rem;
+        }
+        
+        .download-book-btn {
+            background-color: #fff;
+            color: #ff6b6b;
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 50px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .download-book-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+        }
+        
+        .download-book-btn:active {
+            transform: translateY(1px);
+        }
+        
+        /* Estilos para el confeti */
+        .confetti {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background-color: #f00;
+            opacity: 0;
+            animation: confetti 5s ease-in-out infinite;
+        }
+        
+        @keyframes confetti {
+            0%, 100% { transform: translateY(0) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+        }
+
+        /* Estilos para los modales de información */
+        .info-modal {
+            max-width: 500px;
+        }
+        
+        .info-modal h3 {
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+        
+        .info-modal p {
+            margin-bottom: 1rem;
+            line-height: 1.6;
+        }
+        
+        .info-step {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 1rem;
+        }
+        
+        .info-icon {
+            font-size: 1.5rem;
+            color: var(--primary-color);
+            margin-right: 1rem;
+            min-width: 30px;
+        }
+        
+        .info-text {
+            flex: 1;
+        }
+        
+        .pwa-instruction {
+            background-color: var(--neutral-light);
+            padding: 1rem;
+            border-radius: var(--border-radius);
+            margin-bottom: 1rem;
+        }
+        
+        .pwa-instruction h4 {
+            margin-bottom: 0.5rem;
+            color: var(--primary-color);
+        }
+
+        /* Estilos para el sistema de calificación */
+        .rating-container {
+            margin-top: 3rem;
+            padding: 2rem;
+            background-color: var(--neutral-light);
+            border-radius: var(--border-radius);
+            text-align: center;
+            display: none; /* Oculto por defecto, solo se muestra en la sección de preguntas */
+        }
+
+        .rating-container h3 {
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+        }
+
+        .rating-stars {
+            display: flex;
+            justify-content: center;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .rating-star {
+            font-size: 2rem;
+            color: var(--neutral-medium);
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .rating-star:hover,
+        .rating-star.active {
+            color: var(--warning-color);
+        }
+
+        .rating-feedback {
+            width: 100%;
+            padding: 1rem;
+            border-radius: var(--border-radius);
+            border: 1px solid var(--neutral-medium);
+            margin-bottom: 1rem;
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .send-rating-btn {
+            background-color: var(--success-color);
+            color: white;
+            border: none;
+            padding: 0.8rem 1.5rem;
+            border-radius: var(--border-radius);
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            margin: 0 auto;
+        }
+
+        .send-rating-btn:hover {
+            background-color: #218838;
+        }
+
+        /* Estilos para el mensaje de libro generado */
+        .info-message {
+            background-color: #f8f9fa;
+            border-left: 4px solid #6a5acd;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .info-message i {
+            color: #6a5acd;
+            font-size: 1.2rem;
+        }
+
+        /* Responsive design */
+        @media (max-width: 768px) {
+            .app-header {
+                padding: 1rem;
+            }
+            
+            .nav-menu {
+                flex-wrap: wrap;
+            }
+            
+            .main-content {
+                padding: 1rem;
+            }
+            
+            .entries-grid, .questions-grid, .memories-grid, .favorites-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .modal-content {
+                width: 95%;
+                padding: 1.5rem;
+            }
+
+            .welcome-container h2 {
+                font-size: 1.5rem;
+            }
+
+            .welcome-container p {
+                font-size: 1rem;
+            }
+
+            .parent-selector {
+                position: static;
+                margin-bottom: 1rem;
+            }
+
+            .export-buttons {
+                position: static;
+                justify-content: center;
+                margin-bottom: 1rem;
+            }
+
+            .congrats-content h2 {
+                font-size: 1.5rem;
+            }
+            
+            .congrats-content p {
+                font-size: 1rem;
+            }
+            
+            .download-book-btn {
+                padding: 0.8rem 1.5rem;
+                font-size: 1rem;
+            }
+            
+            .question-categories {
+                overflow-x: auto;
+                padding-bottom: 0.5rem;
+                justify-content: flex-start;
+            }
+
+            .rating-star {
+                font-size: 1.5rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .app-header h1 {
+                font-size: 1.5rem;
+            }
+            
+            .nav-btn {
+                font-size: 0.9rem;
+                padding: 0.5rem;
+            }
+            
+            .welcome-container {
+                padding: 1rem;
+            }
+            
+            .section-header h2 {
+                font-size: 1.3rem;
+            }
+            
+            .auth-box {
+                padding: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Sistema de autenticación -->
+    <div class="auth-container" id="auth-container">
+        <div class="auth-box">
+            <div id="login-form">
+                <h2>Iniciar Sesión</h2>
+                <form class="auth-form" id="login-form-element">
+                    <div class="form-group">
+                        <label for="login-password">Contraseña</label>
+                        <input type="password" id="login-password" required>
+                    </div>
+                    <button type="submit">Ingresar</button>
+                </form>
+                <p class="auth-toggle"><a id="show-register"></a></p>
+            </div>
+            
+            <div id="register-form" style="display: none;">
+                <h2>Crear Contraseña</h2>
+                <form class="auth-form" id="register-form-element">
+                    <div class="form-group">
+                        <label for="register-password">Elige tu contraseña</label>
+                        <input type="password" id="register-password" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="confirm-password">Confirma tu contraseña</label>
+                        <input type="password" id="confirm-password" required>
+                    </div>
+                    <button type="submit">Guardar Contraseña</button>
+                </form>
+                <p class="auth-toggle">¿Ya tienes una contraseña? <a id="show-login">Iniciar sesión</a></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Aplicación principal (oculta inicialmente) -->
+    <div class="app-container theme-mama">
+        <header class="app-header">
+            <div class="parent-selector">
+                <button class="parent-btn active" id="mama-btn"><i class="fas fa-female"></i> Mamá</button>
+                <button class="parent-btn" id="papa-btn" onclick="window.location.href='https://www.ejemplo.com/papa'"><i class="fas fa-globe"></i> Sitio Web</button>
+            </div>
+            <div class="logo-container">
+                <img src="https://cuentame.estuwebapp.com.mx/apiv3/section/70149884/libro2cth.png" class="logo">
+                <h1>Un regalo de amor</h1>
+            </div>
+            <nav class="nav-menu">
+                <button class="nav-btn active" data-section="home"><i class="fas fa-home"></i> Inicio</button>
+                <button class="nav-btn" data-section="questions"><i class="fas fa-book"></i> Mi Historia</button>
+                <button class="nav-btn" data-section="cover"><i class="fas fa-book-open"></i> Crear Portada</button>
+                <button class="nav-btn" data-section="favorites"><i class="fas fa-star"></i> Favoritos</button>
+                <button class="nav-btn" id="info-btn"><i class="fas fa-info-circle"></i> Info</button>
+                <button class="nav-btn" id="download-btn" style="display: none;"><i class="fas fa-download"></i> Descargar</button>
+                <button class="nav-btn" id="logout-btn"><i class="fas fa-sign-out-alt"></i> Salir</button>
+            </nav>
+        </header>
+
+        <main class="main-content">
+            <!-- Sección de Inicio -->
+            <section id="home" class="content-section active">
+                <div class="welcome-container">
+                    <h2>¡Bienvenido! 👋</h2>
+                    <p>Comparte con tus hij@s y niet@s anecdotas, experiencias y reflexiones. 💖</p>
+                    
+                    <div class="progress-container">
+                        <div class="progress-bar" id="progress-bar" style="width: 0%"></div>
+                        <div class="progress-text" id="progress-text">0% completado</div>
+                    </div>
+                    
+                    <div class="welcome-animation">
+                        <div class="animation-circle"></div>
+                        <div class="animation-circle"></div>
+                        <div class="animation-circle"></div>
+                    </div>
+                    <button class="cta-button" id="start-journaling">Empezar a escribir ✍️</button>
+                </div>
+                <div class="recent-entries">
+                    <h3>Entradas recientes</h3>
+                    <div class="entries-grid" id="recent-entries-grid">
+                        <!-- Entradas recientes se cargarán aquí -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- Sección de Preguntas (ahora contiene todas las subsecciones) -->
+            <section id="questions" class="content-section">
+                <div class="section-header">
+                    <h2>Comparte tu historia 📖</h2>
+                    <p>Responde estas preguntas para que tu hij@ conozca con mayor detalle tu vida. 👶➡️👨</p>
+                    <div class="export-buttons">
+                        <button class="export-btn" id="export-questions-pdf"><i class="fas fa-file-pdf"></i> Descargar libro</button>
+                    </div>
+                </div>
+                
+                <!-- Menú de subsecciones -->
+                <div class="question-categories">
+                    <button class="category-btn active" data-category="all"><i class="fas fa-list"></i> Todas</button>
+                    <button class="category-btn" data-category="infancia"><i class="fas fa-baby"></i> Niñez</button>
+                    <button class="category-btn" data-category="adolescencia"><i class="fas fa-user-graduate"></i> Adolescencia</button>
+                    <button class="category-btn" data-category="familia"><i class="fas fa-home"></i> Familia</button>
+                    <button class="category-btn" data-category="educacion"><i class="fas fa-graduation-cap"></i> Educación</button>
+                    <button class="category-btn" data-category="hobbies"><i class="fas fa-gamepad"></i> Hobbies</button>
+                    <button class="category-btn" data-category="deporte"><i class="fas fa-running"></i> Deporte</button>
+                    <button class="category-btn" data-category="musica"><i class="fas fa-music"></i> Música</button>
+                    <button class="category-btn" data-category="amor"><i class="fas fa-heart"></i> Amor</button>
+                    <button class="category-btn" data-category="trabajo"><i class="fas fa-briefcase"></i> Trabajo</button>
+                    <button class="category-btn" data-category="viajes"><i class="fas fa-plane"></i> Viajes</button>
+                    <button class="category-btn" data-category="consejos"><i class="fas fa-lightbulb"></i> Consejos</button>
+                    <button class="category-btn" data-category="momentos"><i class="fas fa-heartbeat"></i> Momentos Difíciles</button>
+                    <button class="category-btn" data-category="tecnologia"><i class="fas fa-laptop"></i> Tecnología y Época</button>
+                    <button class="category-btn" data-category="sueños"><i class="fas fa-cloud"></i> Sueños y Metas</button>
+                    <button class="category-btn" data-category="creencias"><i class="fas fa-hands-helping"></i> Creencias y Valores</button>
+                    <button class="category-btn" data-category="mensajes"><i class="fas fa-envelope-open-text"></i> Mensajes Futuros</button>
+                </div>
+                
+                <div class="questions-grid" id="questions-grid">
+                    <!-- Preguntas se cargarán aquí -->
+                </div>
+
+                <!-- Sistema de calificación -->
+                <div class="rating-container" id="rating-container">
+                    <h3>¿Cómo calificarías esta aplicación?</h3>
+                    <div class="rating-stars">
+                        <i class="fas fa-star rating-star" data-rating="1"></i>
+                        <i class="fas fa-star rating-star" data-rating="2"></i>
+                        <i class="fas fa-star rating-star" data-rating="3"></i>
+                        <i class="fas fa-star rating-star" data-rating="4"></i>
+                        <i class="fas fa-star rating-star" data-rating="5"></i>
+                    </div>
+                    <textarea class="rating-feedback" placeholder="Danos tu opinión o sugerencias..."></textarea>
+                    <button class="send-rating-btn" id="send-rating-btn">
+                        <i class="fas fa-paper-plane"></i> Enviar Calificación
+                    </button>
+                </div>
+            </section>
+
+            <!-- Sección de Crear Portada -->
+            <section id="cover" class="content-section">
+                <div class="section-header">
+                    <h2>Crea una portada personalizada para tu libro 📔</h2>
+                    <p>Selecciona entre varios modelos de portada para darle un toque especial y único a tu historia. <br> NOTA: Esta portada se descarga por separado del libro.</p>
+                </div>
+                <div style="text-align: center; margin-top: 2rem;">
+                    <a href="https://www.canva.com/design?category=tJfJXQljDnU" target="_blank" class="cta-button" style="font-size: 1.2rem; padding: 1rem 2rem;">
+                        <i class="fas fa-paint-brush"></i> Diseñar portada
+                    </a>
+                </div>
+            </section>
+
+            <!-- Sección de Favoritos -->
+            <section id="favorites" class="content-section">
+                <div class="section-header">
+                    <h2>Tus entradas favoritas ⭐</h2>
+                    <p>Todas las entradas que has marcado como favoritas aparecerán aquí. ✨</p>
+                    <div class="export-buttons">
+                        <button class="export-btn" id="export-favorites-pdf"><i class="fas fa-file-pdf"></i> PDF</button>
+                    </div>
+                </div>
+                <div class="favorites-grid" id="favorites-grid">
+                    <!-- Favoritos se cargarán aquí -->
+                </div>
+            </section>
+        </main>
+
+        <!-- Modal para responder preguntas -->
+        <div class="modal" id="question-modal">
+            <div class="modal-content">
+                <span class="close-modal">&times;</span>
+                <h3 id="modal-question-title"></h3>
+                <textarea id="modal-question-answer" placeholder="Escribe tu respuesta aquí... ✍️"></textarea>
+                <div class="modal-actions">
+                    <button class="modal-btn save-btn"><i class="fas fa-save"></i> Guardar</button>
+                    <button class="modal-btn cancel-btn"><i class="fas fa-times"></i> Cancelar</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal para añadir recuerdos -->
+        <div class="modal" id="memory-modal">
+            <div class="modal-content">
+                <span class="close-modal">&times;</span>
+                <h3>Añadir nuevo recuerdo 📸</h3>
+                <div class="memory-form">
+                    <div class="form-group">
+                        <label for="memory-title">Título:</label>
+                        <input type="text" id="memory-title" placeholder="Ej: Primer día de escuela">
+                    </div>
+                    <div class="form-group">
+                        <label for="memory-date">Fecha:</label>
+                        <input type="date" id="memory-date">
+                    </div>
+                    <div class="form-group">
+                        <label for="memory-description">Descripción:</label>
+                        <textarea id="memory-description" placeholder="Describe este recuerdo especial... ✨"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="memory-media">Añadir foto/video:</label>
+                        <input type="file" id="memory-media" accept="image/*, video/*">
+                    </div>
+                    <div class="form-actions">
+                        <button class="modal-btn save-btn" id="save-memory"><i class="fas fa-save"></i> Guardar Recuerdo</button>
+                        <button class="modal-btn cancel-btn"><i class="fas fa-times"></i> Cancelar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal para ver entradas completas -->
+        <div class="modal" id="entry-modal">
+            <div class="modal-content entry-modal-content">
+                <span class="close-modal">&times;</span>
+                <h3 id="entry-modal-title"></h3>
+                <p class="entry-date" id="entry-modal-date"></p>
+                <div class="entry-content" id="entry-modal-content"></div>
+                <div class="entry-actions">
+                    <button class="modal-btn edit-btn" id="edit-entry"><i class="fas fa-edit"></i> Editar</button>
+                    <button class="modal-btn favorite-btn" id="toggle-favorite"><i class="far fa-star"></i> Favorito</button>
+                    <button class="modal-btn close-btn"><i class="fas fa-times"></i> Cerrar</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Popup de felicitaciones -->
+        <div class="congrats-popup" id="congrats-popup" style="display: none;">
+            <div class="congrats-content">
+                <h2>¡Felicidades! 🎉</h2>
+                <p>¡Has completado todas las preguntas de tu diario! Ahora puedes descargar todo el libro para guardarlo, imprimirlo y compartirlo con tu hij@.</p>
+                <button class="download-book-btn" id="download-book-btn">
+                    <i class="fas fa-download"></i> Descargar Todo el Libro
+                </button>
+            </div>
+            <!-- Confeti se generará aquí dinámicamente -->
+        </div>
+
+        <!-- Modal de información -->
+        <div class="modal" id="info-modal">
+            <div class="modal-content info-modal">
+                <span class="close-modal">&times;</span>
+                <h3>¿Cómo usar esta aplicación?</h3>
+                
+                <div class="info-step">
+                    <div class="info-icon"><i class="fas fa-book"></i></div>
+                    <div class="info-text">
+                        <h4>1. Responde preguntas</h4>
+                        <p>En la sección "Mi Historia" encontrarás preguntas organizadas por categorías.</p>
+                    </div>
+                </div>
+                
+                <div class="info-step">
+                    <div class="info-icon"><i class="fas fa-star"></i></div>
+                    <div class="info-text">
+                        <h4>2. Marca favoritos</h4>
+                        <p>Puedes marcar tus entradas favoritas para encontrarlas fácilmente en la sección "Favoritos".</p>
+                    </div>
+                </div>
+                
+                <div class="info-step">
+                    <div class="info-icon"><i class="fas fa-paint-brush"></i></div>
+                    <div class="info-text">
+                        <h4>3. Personaliza tu libro</h4>
+                        <p>Crea una portada única para tu libro usando la herramienta de diseño de Cuéntame tu historia.</p>
+                    </div>
+                </div>
+                
+                <div class="info-step">
+                    <div class="info-icon"><i class="fas fa-download"></i></div>
+                    <div class="info-text">
+                        <h4>4. Exporta tu historia</h4>
+                        <p>Puedes exportar tu libro en PDF o imprimirlo para guardarlo como un libro físico.</p>
+                    </div>
+                </div>
+                
+                <div class="info-step">
+                    <div class="info-icon"><i class="fas fa-lock"></i></div>
+                    <div class="info-text">
+                        <h4>5. Tus datos son privados</h4>
+                        <p>Toda la información que ingreses se guarda solo en tu dispositivo. Por tal razón nunca vemos tu información, es importante entender que el libro vive ahora en tu dispositivo únicamente, nosotros no tendrémos respaldo.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal de descarga PWA -->
+        <div class="modal" id="download-modal">
+            <div class="modal-content info-modal">
+                <span class="close-modal">&times;</span>
+                <h3>Instalar en tu celular</h3>
+                <p>Puedes instalar esta aplicación en tu celular como una PWA (Aplicación Web Progresiva) para acceder a ella como una app nativa.</p>
+                
+                <div class="pwa-instruction">
+                    <h4><i class="fab fa-android"></i> Para Android:</h4>
+                    <ol>
+                        <li>Abre la aplicación en Chrome</li>
+                        <li>Toca el menú (tres puntos en la esquina superior derecha)</li>
+                        <li>Selecciona "Instalar aplicación" o "Agregar a la pantalla de inicio"</li>
+                        <li>Confirma la instalación</li>
+                    </ol>
+                </div>
+                
+                <div class="pwa-instruction">
+                    <h4><i class="fab fa-apple"></i> Para iPhone:</h4>
+                    <ol>
+                        <li>Abre la aplicación en Safari</li>
+                        <li>Toca el ícono de compartir (cuadrado con flecha hacia arriba en tu menú del celular)</li>
+                        <li>Selecciona "Agregar a inicio"</li>
+                        <li>Confirma la acción</li>
+                    </ol>
+                </div>
+                
+                <p>Una vez instalada, la aplicación funcionará sin conexión a internet y tendrá su propio ícono en la pantalla de inicio.</p>
+            </div>
+        </div>
+
+        <!-- Contenedor oculto para impresión -->
+        <div id="print-container" style="display: none;"></div>
+    </div>
+
+    <script>
+        // Configurar jsPDF
+        const { jsPDF } = window.jspdf;
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            // Variables globales
+            let entries = JSON.parse(localStorage.getItem('diaryEntries')) || [];
+            let memories = JSON.parse(localStorage.getItem('memories')) || [];
+            let favorites = JSON.parse(localStorage.getItem('favorites')) || [];
+            let currentUser = null;
+            
+            // ARRAY DE CONTRASEÑAS VÁLIDAS
+            const VALID_PASSWORDS = [
+                "miContraseñaSegura123", 
+                "password123",
+                "diarioParaMiHijo",
+                "familia2023"
+            ];
+            
+            // Elementos del DOM
+            const authContainer = document.getElementById('auth-container');
+            const loginForm = document.getElementById('login-form');
+            const registerForm = document.getElementById('register-form');
+            const showRegisterBtn = document.getElementById('show-register');
+            const showLoginBtn = document.getElementById('show-login');
+            const loginFormElement = document.getElementById('login-form-element');
+            const registerFormElement = document.getElementById('register-form-element');
+            const logoutBtn = document.getElementById('logout-btn');
+            
+            const appContainer = document.querySelector('.app-container');
+            const appHeader = document.querySelector('.app-header');
+            const mainContent = document.querySelector('.main-content');
+            
+            const navButtons = document.querySelectorAll('.nav-btn');
+            const contentSections = document.querySelectorAll('.content-section');
+            const startJournalingBtn = document.getElementById('start-journaling');
+            const recentEntriesGrid = document.getElementById('recent-entries-grid');
+            const questionsGrid = document.getElementById('questions-grid');
+            const memoriesGrid = document.getElementById('memories-grid');
+            const favoritesGrid = document.getElementById('favorites-grid');
+            const questionModal = document.getElementById('question-modal');
+            const memoryModal = document.getElementById('memory-modal');
+            const entryModal = document.getElementById('entry-modal');
+            const infoModal = document.getElementById('info-modal');
+            const downloadModal = document.getElementById('download-modal');
+            const infoBtn = document.getElementById('info-btn');
+            const downloadBtn = document.getElementById('download-btn');
+            const closeModalButtons = document.querySelectorAll('.close-modal');
+            const modalQuestionTitle = document.getElementById('modal-question-title');
+            const modalQuestionAnswer = document.getElementById('modal-question-answer');
+            const saveQuestionBtn = document.querySelector('.save-btn');
+            const addMemoryBtn = document.getElementById('add-memory');
+            const saveMemoryBtn = document.getElementById('save-memory');
+            const toggleFavoriteBtn = document.getElementById('toggle-favorite');
+            const editEntryBtn = document.getElementById('edit-entry');
+            const entryModalTitle = document.getElementById('entry-modal-title');
+            const entryModalDate = document.getElementById('entry-modal-date');
+            const entryModalContent = document.getElementById('entry-modal-content');
+            const categoryButtons = document.querySelectorAll('.category-btn');
+            const progressBar = document.getElementById('progress-bar');
+            const progressText = document.getElementById('progress-text');
+            const mamaBtn = document.getElementById('mama-btn');
+            const papaBtn = document.getElementById('papa-btn');
+            const printContainer = document.getElementById('print-container');
+            const congratsPopup = document.getElementById('congrats-popup');
+            const downloadBookBtn = document.getElementById('download-book-btn');
+            const ratingContainer = document.getElementById('rating-container');
+            const ratingStars = document.querySelectorAll('.rating-star');
+            const ratingFeedback = document.querySelector('.rating-feedback');
+            const sendRatingBtn = document.getElementById('send-rating-btn');
+            
+            // Botones de exportación
+            const exportQuestionsPdfBtn = document.getElementById('export-questions-pdf');
+            const exportFavoritesPdfBtn = document.getElementById('export-favorites-pdf');
+            
+            // Preguntas organizadas por categorías
+            const questions = [
+                // Niñez (Infancia)
+                { id: 1, text: "¿Cuál es tu primer recuerdo de la infancia?", category: "infancia", icon: "fa-baby" },
+                { id: 2, text: "¿Cómo describirías tu personalidad de niño?", category: "infancia", icon: "fa-child" },
+                { id: 3, text: "¿Cuál era tu juguete favorito y por qué?", category: "infancia", icon: "fa-cube" },
+                { id: 4, text: "¿Qué actividades disfrutabas hacer en tu tiempo libre?", category: "infancia", icon: "fa-puzzle-piece" },
+                { id: 5, text: "¿Cómo era un día típico en tu infancia?", category: "infancia", icon: "fa-sun" },
+                { id: 6, text: "¿Qué te asustaba cuando eras niño?", category: "infancia", icon: "fa-ghost" },
+                { id: 7, text: "¿Cuál era tu comida favorita y por qué?", category: "infancia", icon: "fa-ice-cream" },
+                { id: 8, text: "¿Qué personaje de televisión o película admirabas?", category: "infancia", icon: "fa-tv" },
+                { id: 9, text: "¿Qué querías ser de mayor cuando eras niño?", category: "infancia", icon: "fa-user-astronaut" },
+                { id: 10, text: "¿Qué consejo le darías a tu yo niño?", category: "infancia", icon: "fa-comment-dots" },
+
+                // Adolescencia
+                { id: 11, text: "¿Cómo era tu grupo de amigos en la adolescencia?", category: "adolescencia", icon: "fa-users" },
+                { id: 12, text: "Describe tu primera vez conduciendo o en moto", category: "adolescencia", icon: "fa-car" },
+                { id: 13, text: "¿Qué música escuchabas en tu juventud?", category: "adolescencia", icon: "fa-music" },
+                { id: 14, text: "Cuéntame sobre tu primer amor", category: "adolescencia", icon: "fa-heart" },
+                { id: 15, text: "¿Cómo era tu estilo de vestir en la adolescencia?", category: "adolescencia", icon: "fa-tshirt" },
+                { id: 16, text: "Describe tu primera experiencia laboral", category: "adolescencia", icon: "fa-briefcase" },
+                { id: 17, text: "¿A qué lugares salías con tus amigos?", category: "adolescencia", icon: "fa-map-marker-alt" },
+                { id: 18, text: "Cuéntame sobre tu fiesta de graduación", category: "adolescencia", icon: "fa-graduation-cap" },
+                { id: 19, text: "¿Qué sueños tenías para tu futuro a los 18 años?", category: "adolescencia", icon: "fa-star" },
+                { id: 20, text: "¿Cómo imaginabas que sería tu vida adulta?", category: "adolescencia", icon: "fa-chart-line" },
+
+                // Familia
+                { id: 21, text: "¿Cómo se llamaban tus padres y cómo eran?", category: "familia", icon: "fa-home" },
+                { id: 22, text: "¿Tienes hermanos? Describe tu relación con ellos", category: "familia", icon: "fa-user-friends" },
+                { id: 23, text: "¿Cómo era la casa donde creciste?", category: "familia", icon: "fa-house-user" },
+                { id: 24, text: "¿Qué tradiciones familiares recuerdas con cariño?", category: "familia", icon: "fa-hands-helping" },
+                { id: 25, text: "¿Qué valores importantes te enseñó tu familia?", category: "familia", icon: "fa-heart" },
+                { id: 26, text: "¿Cómo se conocieron tus padres?", category: "familia", icon: "fa-ring" },
+                { id: 27, text: "¿Qué recuerdos tienes de tus abuelos?", category: "familia", icon: "fa-user-tie" },
+                { id: 28, text: "¿Qué historias familiares se contaban generación tras generación?", category: "familia", icon: "fa-book-open" },
+                { id: 29, text: "¿Qué recetas familiares te gustaría pasar a tu hijo?", category: "familia", icon: "fa-utensils" },
+                { id: 30, text: "¿Qué le dirías a tus antepasados si pudieras hablar con ellos?", category: "familia", icon: "fa-comments" },
+
+                // Educación
+                { id: 31, text: "¿Cómo se llamaba tu primera escuela y cómo era?", category: "educacion", icon: "fa-school" },
+                { id: 32, text: "Describe a tu primer maestro o maestra", category: "educacion", icon: "fa-chalkboard-teacher" },
+                { id: 33, text: "¿Qué asignatura se te daba mejor y cuál peor?", category: "educacion", icon: "fa-book" },
+                { id: 34, text: "Cuéntame sobre tus amigos del colegio", category: "educacion", icon: "fa-user-graduate" },
+                { id: 35, text: "¿Qué actividades extracurriculares hacías?", category: "educacion", icon: "fa-paint-brush" },
+                { id: 36, text: "Describe tu primer día de escuela", category: "educacion", icon: "fa-calendar-day" },
+                { id: 37, text: "¿Qué recuerdas de los recreos?", category: "educacion", icon: "fa-running" },
+                { id: 38, text: "¿Tuviste algún profesor que marcó tu vida?", category: "educacion", icon: "fa-user-graduate" },
+                { id: 39, text: "Cuéntame sobre tu graduación de primaria/secundaria", category: "educacion", icon: "fa-graduation-cap" },
+                { id: 40, text: "¿Qué aprendizaje escolar te ha sido más útil en la vida?", category: "educacion", icon: "fa-lightbulb" },
+
+                // Hobbies
+                { id: 41, text: "¿Qué hobbies tenías cuando eras niño?", category: "hobbies", icon: "fa-gamepad" },
+                { id: 42, text: "¿Qué juegos jugabas con tus amigos?", category: "hobbies", icon: "fa-dice" },
+                { id: 43, text: "¿Qué libros leías en tu tiempo libre?", category: "hobbies", icon: "fa-book-open" },
+                { id: 44, text: "¿Qué programas de TV o películas te gustaban?", category: "hobbies", icon: "fa-tv" },
+                { id: 45, text: "¿Tenías alguna colección (estampas, figuras, etc.)?", category: "hobbies", icon: "fa-chess" },
+                { id: 46, text: "¿Qué actividades creativas disfrutabas?", category: "hobbies", icon: "fa-paint-brush" },
+                { id: 47, text: "¿Qué deportes o actividades físicas practicabas?", category: "hobbies", icon: "fa-running" },
+                { id: 48, text: "¿Qué videojuegos jugabas?", category: "hobbies", icon: "fa-gamepad" },
+                { id: 49, text: "¿Qué actividades al aire libre disfrutabas?", category: "hobbies", icon: "fa-tree" },
+                { id: 50, text: "¿Qué hobby te gustaría compartir con tu hijo?", category: "hobbies", icon: "fa-heart" },
+
+                // Deporte
+                { id: 51, text: "¿Practicabas algún deporte en la escuela?", category: "deporte", icon: "fa-basketball-ball" },
+                { id: 52, text: "¿Cuál era tu equipo deportivo favorito?", category: "deporte", icon: "fa-tshirt" },
+                { id: 53, text: "Describe tu mejor recuerdo deportivo", category: "deporte", icon: "fa-trophy" },
+                { id: 54, text: "¿Qué logros deportivos tuviste?", category: "deporte", icon: "fa-medal" },
+                { id: 55, text: "¿Qué deporte te gustaría enseñarle a tu hijo?", category: "deporte", icon: "fa-running" },
+                { id: 56, text: "¿Qué valores aprendiste del deporte?", category: "deporte", icon: "fa-heart" },
+                { id: 57, text: "¿Qué partido o evento deportivo recuerdas con más emoción?", category: "deporte", icon: "fa-volleyball-ball" },
+                { id: 58, text: "¿Qué actividad física disfrutas ahora?", category: "deporte", icon: "fa-biking" },
+                { id: 59, text: "¿Qué consejo darías sobre la importancia del deporte?", category: "deporte", icon: "fa-comment" },
+                { id: 60, text: "¿Cómo te sentías al competir o jugar?", category: "deporte", icon: "fa-smile" },
+
+                // Música
+                { id: 61, text: "¿Qué música escuchabas en tu adolescencia?", category: "musica", icon: "fa-music" },
+                { id: 62, text: "¿Cuál era tu canción favorita y por qué?", category: "musica", icon: "fa-compact-disc" },
+                { id: 63, text: "¿Tocabas algún instrumento musical?", category: "musica", icon: "fa-guitar" },
+                { id: 64, text: "¿Qué conciertos o eventos musicales recuerdas?", category: "musica", icon: "fa-microphone-alt" },
+                { id: 65, text: "¿Qué artista o grupo admirabas?", category: "musica", icon: "fa-user-music" },
+                { id: 66, text: "¿Qué canción te trae los mejores recuerdos?", category: "musica", icon: "fa-headphones" },
+                { id: 67, text: "¿Qué música te gustaría compartir con tu hijo?", category: "musica", icon: "fa-heart" },
+                { id: 68, text: "¿Cómo influyó la música en tu vida?", category: "musica", icon: "fa-heartbeat" },
+                { id: 69, text: "¿Qué canción describe mejor tu juventud?", category: "musica", icon: "fa-music" },
+                { id: 70, text: "¿Qué género musical te gusta ahora?", category: "musica", icon: "fa-compact-disc" },
+
+                // Amor
+                { id: 71, text: "Describe tu primer amor", category: "amor", icon: "fa-heart" },
+                { id: 72, text: "¿Cómo conociste a tu pareja?", category: "amor", icon: "fa-user-friends" },
+                { id: 73, text: "¿Qué cualidad valoras más en una pareja?", category: "amor", icon: "fa-star" },
+                { id: 74, text: "¿Qué has aprendido sobre el amor?", category: "amor", icon: "fa-lightbulb" },
+                { id: 75, text: "Describe tu primera cita", category: "amor", icon: "fa-calendar-heart" },
+                { id: 76, text: "¿Qué consejo darías sobre relaciones?", category: "amor", icon: "fa-comment" },
+                { id: 77, text: "¿Cómo ha cambiado tu idea del amor con los años?", category: "amor", icon: "fa-heartbeat" },
+                { id: 78, text: "¿Qué significa para ti el amor incondicional?", category: "amor", icon: "fa-heart" },
+                { id: 79, text: "¿Qué momento romántico recuerdas con más cariño?", category: "amor", icon: "fa-kiss-wink-heart" },
+                { id: 80, text: "¿Qué lección sobre el amor te costó más aprender?", category: "amor", icon: "fa-graduation-cap" },
+
+                // Trabajo
+                { id: 81, text: "¿Cuál fue tu primer trabajo?", category: "trabajo", icon: "fa-briefcase" },
+                { id: 82, text: "¿Cómo elegiste tu carrera profesional?", category: "trabajo", icon: "fa-user-tie" },
+                { id: 83, text: "¿Qué desafíos laborales superaste con orgullo?", category: "trabajo", icon: "fa-trophy" },
+                { id: 84, text: "¿Qué consejo darías sobre elegir una carrera?", category: "trabajo", icon: "fa-comment" },
+                { id: 85, text: "¿Cómo manejas el equilibrio entre trabajo y familia?", category: "trabajo", icon: "fa-balance-scale" },
+                { id: 86, text: "¿Qué error laboral te enseñó una lección valiosa?", category: "trabajo", icon: "fa-lightbulb" },
+                { id: 87, text: "¿Qué logro profesional te enorgullece más?", category: "trabajo", icon: "fa-medal" },
+                { id: 88, text: "¿Cómo defines el éxito profesional ahora?", category: "trabajo", icon: "fa-chart-line" },
+                { id: 89, text: "¿Qué habilidades laborales consideras más importantes?", category: "trabajo", icon: "fa-cogs" },
+                { id: 90, text: "¿Qué consejo darías sobre manejar el dinero?", category: "trabajo", icon: "fa-money-bill-wave" },
+
+                // Viajes
+                { id: 91, text: "¿Cuál fue tu primer viaje importante?", category: "viajes", icon: "fa-plane" },
+                { id: 92, text: "Describe tu lugar favorito en el mundo", category: "viajes", icon: "fa-map-marked-alt" },
+                { id: 93, text: "¿Qué cultura te gustaría explorar más?", category: "viajes", icon: "fa-globe-europe" },
+                { id: 94, text: "¿Qué experiencia de viaje te cambió?", category: "viajes", icon: "fa-lightbulb" },
+                { id: 95, text: "¿Qué lugar te hace sentir en casa?", category: "viajes", icon: "fa-home" },
+                { id: 96, text: "¿Qué destino recomendarías a tu hijo?", category: "viajes", icon: "fa-map" },
+                { id: 97, text: "¿Qué comida extranjera te encanta?", category: "viajes", icon: "fa-utensils" },
+                { id: 98, text: "¿Qué idioma te gustaría aprender?", category: "viajes", icon: "fa-language" },
+                { id: 99, text: "¿Qué tradición cultural admiras?", category: "viajes", icon: "fa-monument" },
+                { id: 100, text: "¿Qué lugar te gustaría mostrarle a tu hijo?", category: "viajes", icon: "fa-child" },
+
+                // Consejos
+                { id: 101, text: "¿Qué consejo le darías a tu hijo sobre la familia?", category: "consejos", icon: "fa-home" },
+                { id: 102, text: "¿Qué has aprendido sobre el amor que quieres transmitir?", category: "consejos", icon: "fa-heart" },
+                { id: 103, text: "¿Qué errores cometiste que no quieres que repita?", category: "consejos", icon: "fa-exclamation-triangle" },
+                { id: 104, text: "¿Cómo manejas las dificultades y qué le recomendarías?", category: "consejos", icon: "fa-hands-helping" },
+                { id: 105, text: "¿Qué le dirías sobre elegir amigos?", category: "consejos", icon: "fa-user-friends" },
+                { id: 106, text: "¿Qué consejo le darías sobre estudios y profesión?", category: "consejos", icon: "fa-graduation-cap" },
+                { id: 107, text: "¿Cómo debe manejar el dinero según tu experiencia?", category: "consejos", icon: "fa-money-bill-wave" },
+                { id: 108, text: "¿Qué has aprendido sobre la salud que es importante?", category: "consejos", icon: "fa-heartbeat" },
+                { id: 109, text: "¿Qué valores consideras más importantes en la vida?", category: "consejos", icon: "fa-star" },
+                { id: 110, text: "Si solo pudieras transmitir una lección a tu hijo, ¿cuál sería?", category: "consejos", icon: "fa-lightbulb" },
+
+                // Momentos Difíciles
+                { id: 111, text: "¿Cuál fue el momento más difícil de tu vida y cómo lo superaste?", category: "momentos", icon: "fa-heartbeat" },
+                { id: 112, text: "¿Qué pérdida te marcó profundamente?", category: "momentos", icon: "fa-hand-holding-heart" },
+                { id: 113, text: "¿Qué obstáculo te pareció imposible pero lograste vencer?", category: "momentos", icon: "fa-dumbbell" },
+                { id: 114, text: "¿Quién te ayudó en tus momentos más oscuros?", category: "momentos", icon: "fa-handshake" },
+
+                // Tecnología y Época
+                { id: 115, text: "¿Cómo era la tecnología cuando eras joven?", category: "tecnologia", icon: "fa-mobile-alt" },
+                { id: 116, text: "¿A qué jugabas antes de los smartphones?", category: "tecnologia", icon: "fa-gamepad" },
+                { id: 117, text: "¿Cómo te comunicabas con tus amigos sin redes sociales?", category: "tecnologia", icon: "fa-tv" },
+                { id: 118, text: "¿Qué avance tecnológico te ha sorprendido más?", category: "tecnologia", icon: "fa-robot" },
+
+                // Sueños y Metas
+                { id: 119, text: "¿Cuál era tu mayor sueño de niño?", category: "sueños", icon: "fa-star" },
+                { id: 120, text: "¿Qué meta te costó más trabajo alcanzar?", category: "sueños", icon: "fa-bullseye" },
+                { id: 121, text: "¿Qué sueño tienes aún por cumplir?", category: "sueños", icon: "fa-cloud" },
+                { id: 122, text: "¿Qué sueños tienes para tu hijo?", category: "sueños", icon: "fa-hand-holding-heart" },
+
+                // Creencias y Valores
+                { id: 123, text: "¿Qué valores son los más importantes para ti?", category: "creencias", icon: "fa-hands-helping" },
+                { id: 124, text: "¿Cómo influyeron tus creencias en tus decisiones?", category: "creencias", icon: "fa-praying-hands" },
+                { id: 125, text: "¿Qué lección moral te gustaría transmitir?", category: "creencias", icon: "fa-heart" },
+                { id: 126, text: "¿Cómo defines lo que está bien y lo que está mal?", category: "creencias", icon: "fa-balance-scale" },
+
+                // Mensajes Futuros
+                { id: 127, text: "¿Qué mensaje te gustaría que tu hijo leyera en 20 años?", category: "mensajes", icon: "fa-envelope-open-text" },
+                { id: 128, text: "¿Qué consejo le darías para cuando sea adulto?", category: "mensajes", icon: "fa-graduation-cap" },
+                { id: 129, text: "¿Qué quieres que nunca olvide?", category: "mensajes", icon: "fa-heart" },
+                { id: 130, text: "¿Cómo quieres que te recuerde?", category: "mensajes", icon: "fa-child" }
+            ];
+            
+            // Variables para el estado actual
+            let currentQuestion = null;
+            let currentEntry = null;
+            let isEditing = false;
+            let selectedRating = 0;
+            
+            // Inicializar la aplicación
+            initApp();
+            
+            // Función de inicialización
+            function initApp() {
+                setupEventListeners();
+                
+                // Verificar si hay un usuario logueado
+                const loggedIn = localStorage.getItem('loggedIn');
+                if (loggedIn === 'true') {
+                    loadUserData();
+                    showApp();
+                    
+                    // Verificar si el libro ya fue generado
+                    if (isBookGenerated()) {
+                        showBookGeneratedMessage();
+                    }
+                } else {
+                    showAuth();
+                }
+            }
+            
+            // Mostrar mensaje de libro generado
+            function showBookGeneratedMessage() {
+                const infoSection = document.createElement('div');
+                infoSection.className = 'info-message';
+                infoSection.innerHTML = `
+                    <i class="fas fa-info-circle"></i>
+                    <p>El libro ya ha sido generado. Las respuestas no pueden ser editadas.</p>
+                `;
+                document.querySelector('.main-content').prepend(infoSection);
+            }
+            
+            // Verificar si el libro ha sido generado
+            function isBookGenerated() {
+                return localStorage.getItem('bookGenerated') === 'true';
+            }
+            
+            // Mostrar la aplicación (oculta la autenticación)
+            function showApp() {
+                authContainer.style.display = 'none';
+                appHeader.style.display = 'flex';
+                mainContent.style.display = 'block';
+                
+                loadRecentEntries();
+                loadQuestions();
+                loadFavorites();
+                updateProgressBar();
+                
+                // Establecer fecha predeterminada para nuevos recuerdos
+                document.getElementById('memory-date').valueAsDate = new Date();
+                
+                // Cargar tema guardado o usar el predeterminado (mamá)
+                const savedTheme = localStorage.getItem('parentTheme') || 'mama';
+                setTheme(savedTheme);
+            }
+            
+            // Mostrar la autenticación (oculta la aplicación)
+            function showAuth() {
+                authContainer.style.display = 'flex';
+                appHeader.style.display = 'none';
+                mainContent.style.display = 'none';
+            }
+            
+            // Cargar datos del usuario
+            function loadUserData() {
+                entries = JSON.parse(localStorage.getItem('diaryEntries')) || [];
+                favorites = JSON.parse(localStorage.getItem('favorites')) || [];
+                memories = JSON.parse(localStorage.getItem('memories')) || [];
+            }
+            
+            // Guardar datos del usuario
+            function saveUserData() {
+                localStorage.setItem('diaryEntries', JSON.stringify(entries));
+                localStorage.setItem('favorites', JSON.stringify(favorites));
+                localStorage.setItem('memories', JSON.stringify(memories));
+            }
+            
+            // Configurar event listeners
+            function setupEventListeners() {
+                // Autenticación
+                showRegisterBtn.addEventListener('click', () => {
+                    loginForm.style.display = 'none';
+                    registerForm.style.display = 'block';
+                });
+                
+                showLoginBtn.addEventListener('click', () => {
+                    registerForm.style.display = 'none';
+                    loginForm.style.display = 'block';
+                });
+                
+                loginFormElement.addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    const password = document.getElementById('login-password').value;
+                    
+                    // Validar contra el array de contraseñas
+                    if (VALID_PASSWORDS.includes(password)) {
+                        localStorage.setItem('loggedIn', 'true');
+                        loadUserData();
+                        showApp();
+                    } else {
+                        alert('Contraseña incorrecta');
+                    }
+                });
+                
+                registerFormElement.addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    const password = document.getElementById('register-password').value;
+                    const confirmPassword = document.getElementById('confirm-password').value;
+                    
+                    if (password !== confirmPassword) {
+                        alert('Las contraseñas no coinciden');
+                        return;
+                    }
+                    
+                    // Validar contra el array de contraseñas
+                    if (VALID_PASSWORDS.includes(password)) {
+                        localStorage.setItem('loggedIn', 'true');
+                        loadUserData();
+                        showApp();
+                    } else {
+                        alert('La contraseña no es válida');
+                    }
+                });
+                
+                logoutBtn.addEventListener('click', () => {
+                    localStorage.removeItem('loggedIn');
+                    showAuth();
+                });
+                
+                // Navegación
+                navButtons.forEach(button => {
+                    if (button.id !== 'logout-btn' && button.id !== 'info-btn' && button.id !== 'download-btn') {
+                        button.addEventListener('click', () => {
+                            const sectionId = button.getAttribute('data-section');
+                            switchSection(sectionId);
+                        });
+                    }
+                });
+                
+                // Botón de información
+                infoBtn.addEventListener('click', () => {
+                    infoModal.style.display = 'flex';
+                });
+                
+                // Botón de descarga PWA
+                downloadBtn.addEventListener('click', () => {
+                    downloadModal.style.display = 'flex';
+                });
+                
+                // Botón de empezar a escribir
+                startJournalingBtn.addEventListener('click', () => {
+                    switchSection('questions');
+                });
+                
+                // Cerrar modales
+                closeModalButtons.forEach(button => {
+                    button.addEventListener('click', closeAllModals);
+                });
+                
+                // Guardar respuesta a pregunta
+                saveQuestionBtn.addEventListener('click', saveQuestionAnswer);
+                
+                // Alternar favorito
+                toggleFavoriteBtn.addEventListener('click', toggleFavorite);
+                
+                // Editar entrada
+                editEntryBtn.addEventListener('click', editEntry);
+                
+                // Filtrar preguntas por categoría
+                categoryButtons.forEach(button => {
+                    button.addEventListener('click', () => {
+                        const category = button.getAttribute('data-category');
+                        filterQuestionsByCategory(category);
+                        
+                        // Actualizar botones activos
+                        categoryButtons.forEach(btn => btn.classList.remove('active'));
+                        button.classList.add('active');
+                    });
+                });
+                
+                // Cerrar modal al hacer clic fuera del contenido
+                window.addEventListener('click', (event) => {
+                    if (event.target.classList.contains('modal')) {
+                        closeAllModals();
+                    }
+                });
+                
+                // Selección de padre/madre
+                mamaBtn.addEventListener('click', () => setTheme('mama'));
+                // El botón de papá ahora tiene un enlace directo en el HTML
+                
+                // Botones de exportación
+                exportQuestionsPdfBtn.addEventListener('click', () => exportSectionToPdf('questions'));
+                exportFavoritesPdfBtn.addEventListener('click', () => exportSectionToPdf('favorites'));
+                
+                // Botón para descargar libro completo
+                downloadBookBtn.addEventListener('click', downloadCompleteBook);
+
+                // Sistema de calificación
+                ratingStars.forEach(star => {
+                    star.addEventListener('click', () => {
+                        const rating = parseInt(star.getAttribute('data-rating'));
+                        setRating(rating);
+                    });
+
+                    star.addEventListener('mouseover', () => {
+                        const rating = parseInt(star.getAttribute('data-rating'));
+                        highlightStars(rating);
+                    });
+
+                    star.addEventListener('mouseout', () => {
+                        highlightStars(selectedRating);
+                    });
+                });
+
+                sendRatingBtn.addEventListener('click', sendRating);
+            }
+            
+            // Cambiar tema entre mamá y papá
+            function setTheme(theme) {
+                // Remover clases de tema existentes
+                appContainer.classList.remove('theme-mama', 'theme-papa');
+                
+                // Añadir nueva clase de tema
+                appContainer.classList.add(`theme-${theme}`);
+                
+                // Actualizar botones activos
+                mamaBtn.classList.toggle('active', theme === 'mama');
+                papaBtn.classList.toggle('active', theme === 'papa');
+                
+                // Guardar preferencia
+                localStorage.setItem('parentTheme', theme);
+            }
+            
+            // Actualizar barra de progreso
+            function updateProgressBar() {
+                const totalEntries = entries.length;
+                const totalQuestions = questions.length;
+                const progressPercentage = Math.min(Math.round((totalEntries / totalQuestions) * 100), 100);
+                
+                progressBar.style.width = `${progressPercentage}%`;
+                progressText.textContent = `${progressPercentage}% completado (${totalEntries}/${totalQuestions})`;
+                
+                // Ajustar color del texto según el porcentaje
+                if (progressPercentage > 50) {
+                    progressText.style.color = 'white';
+                } else {
+                    progressText.style.color = 'var(--dark-color)';
+                }
+                
+                // Mostrar/ocultar botón de descarga completa
+                const downloadBtn = document.getElementById('download-btn');
+                if (progressPercentage === 100) {
+                    downloadBtn.style.display = 'inline-flex';
+                    // Mostrar el sistema de calificación cuando se completan todas las preguntas
+                    ratingContainer.style.display = 'block';
+                    // Esperar un momento para que la animación de la barra de progreso termine
+                    setTimeout(() => {
+                        showCongratsPopup();
+                    }, 1000);
+                } else {
+                    downloadBtn.style.display = 'none';
+                    ratingContainer.style.display = 'none';
+                }
+            }
+            
+            // Función para mostrar el popup de felicitaciones
+            function showCongratsPopup() {
+                congratsPopup.style.display = 'flex';
+                
+                // Generar confeti
+                generateConfetti();
+            }
+
+            // Función para generar confeti
+            function generateConfetti() {
+                const colors = ['#ff0000', '#00ff00', '#0000ff', '#ffff00', '#ff00ff', '#00ffff'];
+                
+                // Limpiar confeti existente
+                const existingConfetti = document.querySelectorAll('.confetti');
+                existingConfetti.forEach(c => c.remove());
+                
+                // Crear 100 piezas de confeti
+                for (let i = 0; i < 100; i++) {
+                    const confetti = document.createElement('div');
+                    confetti.className = 'confetti';
+                    
+                    // Posición aleatoria
+                    const left = Math.random() * 100;
+                    const animationDelay = Math.random() * 5;
+                    const animationDuration = 3 + Math.random() * 3;
+                    
+                    // Color aleatorio
+                    const color = colors[Math.floor(Math.random() * colors.length)];
+                    
+                    // Tamaño aleatorio
+                    const size = 5 + Math.random() * 10;
+                    
+                    // Estilo del confeti
+                    confetti.style.left = `${left}%`;
+                    confetti.style.backgroundColor = color;
+                    confetti.style.width = `${size}px`;
+                    confetti.style.height = `${size}px`;
+                    confetti.style.animationDelay = `${animationDelay}s`;
+                    confetti.style.animationDuration = `${animationDuration}s`;
+                    
+                    // Forma aleatoria (cuadrado o círculo)
+                    if (Math.random() > 0.5) {
+                        confetti.style.borderRadius = '50%';
+                    }
+                    
+                    congratsPopup.appendChild(confetti);
+                }
+            }
+
+            // Función para descargar todo el libro en PDF
+            function downloadCompleteBook() {
+                const doc = new jsPDF({
+                    orientation: 'portrait',
+                    unit: 'mm',
+                    format: 'a4'
+                });
+                
+                const pageWidth = doc.internal.pageSize.getWidth();
+                const pageHeight = doc.internal.pageSize.getHeight();
+                const margin = 15;
+                
+                // Función para dibujar el marco
+                const drawFrame = () => {
+                    doc.setDrawColor(106, 90, 205);
+                    doc.setLineWidth(0.5);
+                    doc.roundedRect(
+                        margin, 
+                        margin, 
+                        pageWidth - 2 * margin, 
+                        pageHeight - 2 * margin, 
+                        3, 3, 'S'
+                    );
+                    
+                    doc.setLineWidth(0.3);
+                    doc.roundedRect(
+                        margin + 5, 
+                        margin + 5, 
+                        pageWidth - 2 * margin - 10, 
+                        pageHeight - 2 * margin - 10, 
+                        2, 2, 'S'
+                    );
+                    
+                    // Pie de página
+                    doc.setFontSize(10);
+                    doc.setTextColor(106, 90, 205);
+                    doc.text(
+                        'CUÉNTAME TU HISTORIA', 
+                        pageWidth / 2, 
+                        pageHeight - margin / 2, 
+                        { align: 'center' }
+                    );
+                };
+                
+                let yPos = margin + 20;
+                
+                // Dibujar marco en la primera página
+                drawFrame();
+                
+                // Título del libro
+                doc.setFontSize(22);
+                doc.setTextColor(106, 90, 205);
+                doc.text('Mi Historia para mi Hijo', pageWidth / 2, yPos, { align: 'center' });
+                yPos += 15;
+                
+                // Subtítulo
+                doc.setFontSize(16);
+                doc.setTextColor(0, 0, 0);
+                doc.text('Un regalo de amor para cuando seas mayor', pageWidth / 2, yPos, { align: 'center' });
+                yPos += 20;
+                
+                // Autor
+                const parentName = document.querySelector('.parent-btn.active').textContent.trim();
+                doc.setFontSize(14);
+                doc.text(`Por: ${parentName}`, pageWidth / 2, yPos, { align: 'center' });
+                yPos += 25;
+                
+                // Fecha
+                doc.setFontSize(12);
+                doc.text(`Creado el: ${new Date().toLocaleDateString()}`, pageWidth / 2, yPos, { align: 'center' });
+                yPos += 30;
+                
+                // Índice
+                doc.setFontSize(16);
+                doc.setTextColor(106, 90, 205);
+                doc.text('Índice', margin + 10, yPos);
+                yPos += 10;
+                
+                doc.setFontSize(12);
+                doc.setTextColor(0, 0, 0);
+                
+                // Agrupar entradas por categoría
+                const categories = {};
+                const categoryNames = {
+                    'infancia': 'Niñez',
+                    'adolescencia': 'Adolescencia',
+                    'familia': 'Familia',
+                    'educacion': 'Educación',
+                    'hobbies': 'Hobbies',
+                    'deporte': 'Deporte',
+                    'musica': 'Música',
+                    'amor': 'Amor',
+                    'trabajo': 'Trabajo',
+                    'viajes': 'Viajes',
+                    'consejos': 'Consejos',
+                    'momentos': 'Momentos Difíciles',
+                    'tecnologia': 'Tecnología y Época',
+                    'sueños': 'Sueños y Metas',
+                    'creencias': 'Creencias y Valores',
+                    'mensajes': 'Mensajes Futuros'
+                };
+                
+                for (const category in categoryNames) {
+                    categories[category] = [];
+                }
+                
+                entries.forEach(entry => {
+                    const question = questions.find(q => q.id === entry.questionId);
+                    if (question) {
+                        categories[question.category].push(entry);
+                    }
+                });
+                
+                // Sección para cada categoría
+                Object.keys(categories).forEach(category => {
+                    const categoryEntries = categories[category];
+                    
+                    if (categoryEntries.length > 0) {
+                        // Agregar nueva página si es necesario
+                        if (yPos > pageHeight - margin - 20) {
+                            doc.addPage();
+                            yPos = margin + 20;
+                            drawFrame();
+                        }
+                        
+                        // Título de la categoría
+                        doc.setFontSize(18);
+                        doc.setTextColor(106, 90, 205);
+                        doc.text(categoryNames[category], margin + 10, yPos);
+                        yPos += 15;
+                        
+                        // Entradas de la categoría
+                        doc.setFontSize(12);
+                        doc.setTextColor(0, 0, 0);
+                        
+                        categoryEntries.forEach(entry => {
+                            // Agregar nueva página si es necesario
+                            if (yPos > pageHeight - margin - 20) {
+                                doc.addPage();
+                                yPos = margin + 20;
+                                drawFrame();
+                            }
+                            
+                            // Pregunta
+                            doc.setFontSize(14);
+                            doc.setTextColor(106, 90, 205);
+                            doc.text(entry.question, margin + 10, yPos, { maxWidth: pageWidth - 2 * margin - 20 });
+                            yPos += 10;
+                            
+                            // Fecha
+                            doc.setFontSize(10);
+                            doc.setTextColor(100, 100, 100);
+                            doc.text(formatDate(entry.date, true), margin + 10, yPos);
+                            yPos += 10;
+                            
+                            // Respuesta
+                            doc.setFontSize(12);
+                            doc.setTextColor(0, 0, 0);
+                            
+                            const lines = doc.splitTextToSize(entry.answer, pageWidth - 2 * margin - 20);
+                            doc.text(lines, margin + 10, yPos);
+                            yPos += (lines.length * 6) + 15;
+                        });
+                        
+                        // Espacio entre categorías
+                        yPos += 10;
+                    }
+                });
+                
+                // Guardar PDF
+                doc.save(`Mi Historia para mi Hijo - ${parentName}.pdf`);
+                
+                // Marcar que el libro ha sido generado
+                localStorage.setItem('bookGenerated', 'true');
+                
+                // Mostrar mensaje informativo
+                showBookGeneratedMessage();
+                
+                // Cerrar el popup después de descargar
+                congratsPopup.style.display = 'none';
+                
+                // Recargar preguntas para deshabilitar los botones de edición
+                loadQuestions();
+            }
+            
+            // Exportar sección a PDF
+            function exportSectionToPdf(section) {
+                // Verificar si todas las preguntas están completadas para la sección de preguntas
+                if (section === 'questions' && entries.length < questions.length) {
+                    const unanswered = questions.length - entries.length;
+                    alert(`No puedes exportar el PDF todavía. Te faltan ${unanswered} preguntas por responder.`);
+                    return;
+                }
+                
+                let title, items;
+                
+                switch(section) {
+                    case 'questions':
+                        title = 'Mi Historia - Preguntas y Respuestas';
+                        items = entries.map(entry => ({
+                            title: entry.question,
+                            date: entry.date,
+                            content: entry.answer
+                        }));
+                        break;
+                    case 'favorites':
+                        title = 'Mis Favoritos';
+                        const favoriteEntries = entries.filter(entry => favorites.includes(entry.id));
+                        items = favoriteEntries.map(item => ({
+                            title: item.question,
+                            date: item.date,
+                            content: item.answer,
+                            type: item.type
+                        }));
+                        break;
+                }
+                
+                if (items.length === 0) {
+                    alert(`No hay contenido para exportar en la sección ${title}`);
+                    return;
+                }
+                
+                // Crear PDF con orientación vertical y márgenes más grandes para el marco
+                const doc = new jsPDF({
+                    orientation: 'portrait',
+                    unit: 'mm',
+                    format: 'a4'
+                });
+                
+                // Configuración del marco y estilo
+                const pageWidth = doc.internal.pageSize.getWidth();
+                const pageHeight = doc.internal.pageSize.getHeight();
+                const margin = 15; // Margen para el marco
+                
+                // Función para dibujar el marco decorativo
+                const drawFrame = () => {
+                    // Color del marco (puedes cambiarlo)
+                    doc.setDrawColor(106, 90, 205); // Color morado
+                    doc.setLineWidth(0.5);
+                    
+                    // Marco exterior
+                    doc.roundedRect(
+                        margin, 
+                        margin, 
+                        pageWidth - 2 * margin, 
+                        pageHeight - 2 * margin, 
+                        3, 3, 'S'
+                    );
+                    
+                    // Marco interior más fino
+                    doc.setLineWidth(0.3);
+                    doc.roundedRect(
+                        margin + 5, 
+                        margin + 5, 
+                        pageWidth - 2 * margin - 10, 
+                        pageHeight - 2 * margin - 10, 
+                        2, 2, 'S'
+                    );
+                    
+                    // Pie de página
+                    doc.setFontSize(10);
+                    doc.setTextColor(106, 90, 205);
+                    doc.text(
+                        'CUÉNTAME TU HISTORIA', 
+                        pageWidth / 2, 
+                        pageHeight - margin / 2, 
+                        { align: 'center' }
+                    );
+                };
+                
+                let yPos = margin + 20;
+                
+                // Dibujar marco en la primera página
+                drawFrame();
+                
+                // Título
+                doc.setFontSize(18);
+                doc.setTextColor(106, 90, 205);
+                doc.text(title, pageWidth / 2, yPos, { align: 'center' });
+                yPos += 15;
+                
+                // Fecha de exportación
+                doc.setFontSize(10);
+                doc.setTextColor(100, 100, 100);
+                doc.text(`Exportado el: ${new Date().toLocaleDateString()}`, pageWidth / 2, yPos, { align: 'center' });
+                yPos += 20;
+                
+                // Contenido
+                doc.setFontSize(12);
+                doc.setTextColor(0, 0, 0);
+                
+                items.forEach((item, index) => {
+                    // Verificar si necesitamos una nueva página
+                    if (yPos > pageHeight - margin - 20) {
+                        doc.addPage();
+                        yPos = margin + 20;
+                        drawFrame(); // Dibujar marco en la nueva página
+                    }
+                    
+                    // Título de la entrada
+                    doc.setFontSize(14);
+                    doc.setTextColor(106, 90, 205);
+                    doc.text(item.title, margin + 10, yPos, { maxWidth: pageWidth - 2 * margin - 20 });
+                    yPos += 10;
+                    
+                    // Fecha
+                    doc.setFontSize(10);
+                    doc.setTextColor(100, 100, 100);
+                    doc.text(formatDate(item.date, true), margin + 10, yPos);
+                    yPos += 10;
+                    
+                    // Contenido
+                    doc.setFontSize(12);
+                    doc.setTextColor(0, 0, 0);
+                    
+                    // Dividir el texto en líneas que quepan en el PDF
+                    const lines = doc.splitTextToSize(item.content, pageWidth - 2 * margin - 20);
+                    doc.text(lines, margin + 10, yPos);
+                    yPos += (lines.length * 6) + 10;
+                });
+                
+                // Guardar PDF
+                doc.save(`${title}.pdf`);
+            }
+            
+            // Cambiar de sección
+            function switchSection(sectionId) {
+                // Ocultar todas las secciones
+                contentSections.forEach(section => {
+                    section.classList.remove('active');
+                });
+                
+                // Mostrar la sección seleccionada
+                document.getElementById(sectionId).classList.add('active');
+                
+                // Actualizar botones de navegación activos
+                navButtons.forEach(button => {
+                    button.classList.remove('active');
+                    if (button.getAttribute('data-section') === sectionId) {
+                        button.classList.add('active');
+                    }
+                });
+                
+                // Recargar contenido si es necesario
+                if (sectionId === 'favorites') {
+                    loadFavorites();
+                } else if (sectionId === 'questions') {
+                    loadQuestions();
+                }
+            }
+            
+            // Cargar entradas recientes
+            function loadRecentEntries() {
+                recentEntriesGrid.innerHTML = '';
+                
+                // Ordenar entradas por fecha (más recientes primero)
+                const sortedEntries = [...entries].sort((a, b) => new Date(b.date) - new Date(a.date));
+                
+                // Mostrar las 6 más recientes
+                const recentEntries = sortedEntries.slice(0, 6);
+                
+                if (recentEntries.length === 0) {
+                    recentEntriesGrid.innerHTML = '<p class="no-entries">Aún no hay entradas. ¡Empieza a escribir! ✍️</p>';
+                    return;
+                }
+                
+                recentEntries.forEach(entry => {
+                    const entryCard = createEntryCard(entry);
+                    recentEntriesGrid.appendChild(entryCard);
+                });
+            }
+            
+            // Cargar preguntas
+            function loadQuestions(category = 'all') {
+                questionsGrid.innerHTML = '';
+                
+                const filteredQuestions = category === 'all' 
+                    ? questions 
+                    : questions.filter(q => q.category === category);
+                
+                filteredQuestions.forEach(question => {
+                    const questionCard = createQuestionCard(question);
+                    questionsGrid.appendChild(questionCard);
+                });
+            }
+            
+            // Filtrar preguntas por categoría
+            function filterQuestionsByCategory(category) {
+                loadQuestions(category);
+            }
+            
+            // Cargar favoritos
+            function loadFavorites() {
+                favoritesGrid.innerHTML = '';
+                
+                if (favorites.length === 0) {
+                    favoritesGrid.innerHTML = '<p class="no-entries">Aún no hay entradas favoritas. ⭐</p>';
+                    return;
+                }
+                
+                // Combinar entradas y recuerdos favoritos
+                const favoriteEntries = entries.filter(entry => favorites.includes(entry.id));
+                
+                const allFavorites = [...favoriteEntries].sort((a, b) => new Date(b.date) - new Date(a.date));
+                
+                allFavorites.forEach(item => {
+                    const favoriteCard = createEntryCard(item);
+                    favoritesGrid.appendChild(favoriteCard);
+                });
+            }
+            
+            // Crear tarjeta de entrada
+            function createEntryCard(entry) {
+                const entryCard = document.createElement('div');
+                entryCard.className = 'entry-card';
+                entryCard.setAttribute('data-id', entry.id);
+                
+                const formattedDate = formatDate(entry.date);
+                
+                entryCard.innerHTML = `
+                    <div class="entry-header">
+                        <h3>${entry.question}</h3>
+                        <p class="entry-date">${formattedDate}</p>
+                    </div>
+                    <div class="entry-content">
+                        ${truncateText(entry.answer, 100)}
+                    </div>
+                    <div class="entry-actions">
+                        <span><i class="fas ${favorites.includes(entry.id) ? 'fa-star' : 'far fa-star'}"></i></span>
+                        <span>Leer más</span>
+                    </div>
+                `;
+                
+                entryCard.addEventListener('click', () => {
+                    openEntryModal(entry);
+                });
+                
+                return entryCard;
+            }
+            
+            // Crear tarjeta de pregunta
+            function createQuestionCard(question) {
+                const questionCard = document.createElement('div');
+                questionCard.className = 'question-card';
+                
+                // Verificar si ya hay una entrada para esta pregunta
+                const existingEntry = entries.find(entry => entry.questionId === question.id);
+                const bookGenerated = isBookGenerated();
+                
+                questionCard.innerHTML = `
+                    <h3><i class="fas ${question.icon}"></i> ${question.text}</h3>
+                    <p>${existingEntry ? '✅ Ya has respondido esta pregunta' : '❌ Aún no has respondido esta pregunta'}</p>
+                    <button class="answer-btn" ${bookGenerated && existingEntry ? 'disabled' : ''}>
+                        ${existingEntry ? '<i class="fas fa-edit"></i> Ver/Editar respuesta' : '<i class="fas fa-pen"></i> Responder'}
+                    </button>
+                `;
+                
+                const answerBtn = questionCard.querySelector('.answer-btn');
+                answerBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    if (existingEntry) {
+                        openEntryModal(existingEntry);
+                    } else {
+                        openQuestionModal(question);
+                    }
+                });
+                
+                return questionCard;
+            }
+            
+            // Abrir modal de pregunta
+            function openQuestionModal(question) {
+                if (isBookGenerated()) {
+                    alert('El libro ya ha sido generado. No puedes editar las respuestas.');
+                    return;
+                }
+                
+                currentQuestion = question;
+                modalQuestionTitle.textContent = question.text;
+                modalQuestionAnswer.value = '';
+                questionModal.style.display = 'flex';
+                isEditing = false;
+            }
+            
+            // Abrir modal de entrada
+            function openEntryModal(entry) {
+                currentEntry = entry;
+                entryModalTitle.textContent = entry.question;
+                entryModalDate.textContent = formatDate(entry.date, true);
+                entryModalContent.textContent = entry.answer;
+                
+                // Actualizar botón de favorito
+                const favoriteIcon = toggleFavoriteBtn.querySelector('i');
+                if (favorites.includes(entry.id)) {
+                    toggleFavoriteBtn.classList.add('active');
+                    favoriteIcon.classList.remove('far');
+                    favoriteIcon.classList.add('fas');
+                } else {
+                    toggleFavoriteBtn.classList.remove('active');
+                    favoriteIcon.classList.remove('fas');
+                    favoriteIcon.classList.add('far');
+                }
+                
+                // Configurar botón de editar
+                editEntryBtn.style.display = isBookGenerated() ? 'none' : 'inline-flex';
+                
+                entryModal.style.display = 'flex';
+                isEditing = false;
+            }
+            
+            // Cerrar todos los modales
+            function closeAllModals() {
+                questionModal.style.display = 'none';
+                memoryModal.style.display = 'none';
+                entryModal.style.display = 'none';
+                congratsPopup.style.display = 'none';
+                infoModal.style.display = 'none';
+                downloadModal.style.display = 'none';
+            }
+            
+            // Guardar respuesta a pregunta
+            function saveQuestionAnswer() {
+                const answer = modalQuestionAnswer.value.trim();
+                
+                if (!answer) {
+                    alert('Por favor, escribe una respuesta. ✍️');
+                    return;
+                }
+                
+                // Crear nueva entrada o actualizar existente
+                const existingEntryIndex = entries.findIndex(entry => entry.questionId === currentQuestion.id);
+                
+                const newEntry = {
+                    id: isEditing ? currentEntry.id : Date.now().toString(),
+                    questionId: currentQuestion.id,
+                    question: currentQuestion.text,
+                    answer: answer,
+                    date: isEditing ? currentEntry.date : new Date().toISOString(),
+                    type: 'entry'
+                };
+                
+                if (existingEntryIndex !== -1) {
+                    entries[existingEntryIndex] = newEntry;
+                } else {
+                    entries.push(newEntry);
+                }
+                
+                // Guardar en localStorage
+                saveUserData();
+                
+                // Recargar secciones relevantes
+                loadRecentEntries();
+                loadQuestions();
+                updateProgressBar();
+                
+                // Cerrar modal
+                closeAllModals();
+                
+                // Mostrar mensaje de éxito
+                alert('¡Respuesta guardada con éxito! ✅');
+            }
+            
+            // Alternar favorito
+            function toggleFavorite() {
+                if (!currentEntry) return;
+                
+                const index = favorites.indexOf(currentEntry.id);
+                
+                if (index === -1) {
+                    // Añadir a favoritos
+                    favorites.push(currentEntry.id);
+                    toggleFavoriteBtn.classList.add('active');
+                    const icon = toggleFavoriteBtn.querySelector('i');
+                    icon.classList.remove('far');
+                    icon.classList.add('fas');
+                } else {
+                    // Quitar de favoritos
+                    favorites.splice(index, 1);
+                    toggleFavoriteBtn.classList.remove('active');
+                    const icon = toggleFavoriteBtn.querySelector('i');
+                    icon.classList.remove('fas');
+                    icon.classList.add('far');
+                }
+                
+                // Guardar en localStorage
+                saveUserData();
+                
+                // Actualizar la vista si estamos en la sección de favoritos
+                if (document.getElementById('favorites').classList.contains('active')) {
+                    loadFavorites();
+                }
+            }
+            
+            // Editar entrada
+            function editEntry() {
+                if (!currentEntry) return;
+                
+                if (isBookGenerated()) {
+                    alert('El libro ya ha sido generado. No puedes editar las respuestas.');
+                    return;
+                }
+                
+                // Buscar la pregunta correspondiente
+                currentQuestion = questions.find(q => q.id === currentEntry.questionId);
+                
+                if (!currentQuestion) {
+                    alert('No se pudo encontrar la pregunta original. ❌');
+                    return;
+                }
+                
+                // Configurar el modal de pregunta para edición
+                modalQuestionTitle.textContent = currentQuestion.text;
+                modalQuestionAnswer.value = currentEntry.answer;
+                questionModal.style.display = 'flex';
+                isEditing = true;
+                
+                // Cerrar el modal de entrada
+                entryModal.style.display = 'none';
+            }
+            
+            // Funciones para el sistema de calificación
+            function setRating(rating) {
+                selectedRating = rating;
+                highlightStars(rating);
+            }
+
+            function highlightStars(rating) {
+                ratingStars.forEach(star => {
+                    const starRating = parseInt(star.getAttribute('data-rating'));
+                    if (starRating <= rating) {
+                        star.classList.add('active');
+                    } else {
+                        star.classList.remove('active');
+                    }
+                });
+            }
+
+            function sendRating() {
+                if (selectedRating === 0) {
+                    alert('Por favor selecciona una calificación antes de enviar.');
+                    return;
+                }
+
+                const feedback = ratingFeedback.value.trim();
+                const parentName = document.querySelector('.parent-btn.active').textContent.trim();
+                const whatsappNumber = "1234567890"; // Reemplaza con el número de WhatsApp real
+                
+                // Crear mensaje para WhatsApp
+                const message = `Calificación de la aplicación:\n\n` +
+                                `⭐ Calificación: ${selectedRating}/5\n\n` +
+                                `📝 Comentarios: ${feedback || 'Sin comentarios'}\n\n` +
+                                `👤 Usuario: ${parentName}`;
+                
+                // Codificar el mensaje para URL
+                const encodedMessage = encodeURIComponent(message);
+                
+                // Crear enlace de WhatsApp
+                const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodedMessage}`;
+                
+                // Abrir enlace en una nueva pestaña
+                window.open(whatsappUrl, '_blank');
+                
+                // Mostrar mensaje de agradecimiento
+                alert('¡Gracias por tu calificación! Tu opinión nos ayuda a mejorar la aplicación. 😊');
+                
+                // Limpiar el formulario
+                selectedRating = 0;
+                highlightStars(0);
+                ratingFeedback.value = '';
+            }
+            
+            // Funciones auxiliares
+            function formatDate(dateString, includeTime = false) {
+                const options = { 
+                    year: 'numeric', 
+                    month: 'long', 
+                    day: 'numeric',
+                    ...(includeTime && { hour: '2-digit', minute: '2-digit' })
+                };
+                return new Date(dateString).toLocaleDateString('es-ES', options);
+            }
+            
+            function truncateText(text, maxLength) {
+                if (text.length <= maxLength) return text;
+                return text.substring(0, maxLength) + '...';
+            }
+            
+            function dataURLtoBlob(dataurl) {
+                const arr = dataurl.split(',');
+                const mime = arr[0].match(/:(.*?);/)[1];
+                const bstr = atob(arr[1]);
+                let n = bstr.length;
+                const u8arr = new Uint8Array(n);
+                
+                while(n--) {
+                    u8arr[n] = bstr.charCodeAt(n);
+                }
+                
+                return new Blob([u8arr], {type: mime});
+            }
+        });
+    </script>
+</body>
+</html>
